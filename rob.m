@@ -23,8 +23,8 @@ H=[(Hrab/(Ro*Cp))*10^(-3) (Hrbc/(Ro*Cp))*10^(-3) (Hrad/(Ro*Cp))*10^(-3)]; %dziel
 A=[((kw*Ar)/(Ro*Cp*Vr))*10^(-3) (kw*Ar)/(mk*Cpk)];
 
 %% DANE 
-x0 = [5.1 0 293.15 293.15]; %war poczatkowe - wektor poziomy
-T = 0.4;      %czas Symulacji
+x0 = [5.1 0 293.15 293.15 0]; %war poczatkowe - wektor poziomy
+T = 0.4;      %czas Symulacji - zmienic tez w cost.m
 tau = linspace(0,T,11); % wektor pionowy, zabiera du¿o czasu
 
 param1=3;   %zmiana wartosci pierwszego sterowania (wplywu substratu)
@@ -42,7 +42,7 @@ dtau = diff (tau);
 n = ceil (dtau/h0); % ile razy sie zmiesci w przedziale strukturalnym
 cn=cumsum( [1 n] ) ;  % a=[1 2 3 4] cumsum(a)->[1 3 6 10]
 
-x = zeros(cn(end), 4);  % 2- tyle ile zmiennych stanu
+x = zeros(cn(end), 5);  % 2- tyle ile zmiennych stanu
 x(1,1)=x0(1);
 x(1,2)=x0(2);
 x(1,3)=x0(3);
@@ -58,14 +58,14 @@ for j = 1: length(tau)-1
     h6 = h/6;
     for i = cn(j) : cn(j+1)-1
     % specyficzna czesc rk4
-    k1=h*rhs([x(i,1);x(i,2);x(i,3);x(i,4)],u(:,j),H,A,zak,k0,E0R);
-    xtemp=[x(i,1);x(i,2);x(i,3);x(i,4)]+k1./2.0;
+    k1=h*rhs([x(i,1);x(i,2);x(i,3);x(i,4);x(i,5)],u(:,j),H,A,zak,k0,E0R);
+    xtemp=[x(i,1);x(i,2);x(i,3);x(i,4);x(i,5)]+k1./2.0;
     ttemp=t(i)+h2;
     k2=h*rhs(xtemp,u(:,j),H,A,zak,k0,E0R);
-    xtemp=[x(i,1);x(i,2);x(i,3);x(i,4)]+k2./2.0;
+    xtemp=[x(i,1);x(i,2);x(i,3);x(i,4);x(i,5)]+k2./2.0;
     ttemp=h2;
     k3=h*rhs(xtemp,u(:,j),H,A,zak,k0,E0R);
-    xtemp=[x(i,1);x(i,2);x(i,3);x(i,4)]+k3;
+    xtemp=[x(i,1);x(i,2);x(i,3);x(i,4);x(i,5)]+k3;
     ttemp=t(i)+h;
     k4=h*rhs(xtemp,u(:,j),H,A,zak,k0,E0R);
     
@@ -73,15 +73,16 @@ for j = 1: length(tau)-1
     x(i+1,2)=x(i,2)+(1.0 / 6.0)*(k1(2) + 2.0*k2(2) + 2.0*k3(2) + k4(2));
     x(i+1,3)=x(i,3)+(1.0 / 6.0)*(k1(3) + 2.0*k2(3) + 2.0*k3(3) + k4(3));
     x(i+1,4)=x(i,4)+(1.0 / 6.0)*(k1(4) + 2.0*k2(4) + 2.0*k3(4) + k4(4));
+    x(i+1,5)=x(i,5)+(1.0 / 6.0)*(k1(5) + 2.0*k2(5) + 2.0*k3(5) + k4(5));
     t(i+1)=t(i)+h;
     end
 end
 
 %%Petla w tyl
-ka=10^3; %lol nie wiem co to
+ka=10^3; %wspolczynnik dla kary - zmienic tez w cost.m
 
-psi=zeros(cn(end),4);
-psi(end,:)= [-ka*(x(end,1)-2.13959274764266) -ka*(x(end,2)-1.09030127640364) -ka*(x(end,3)-387.35) -ka*(x(end,4)-386.0655084902178)];
+psi=zeros(cn(end),5);
+psi(end,:)= [-ka*(x(end,1)-2.13959274764266) -ka*(x(end,2)-1.09030127640364) -ka*(x(end,3)-387.35) -ka*(x(end,4)-386.0655084902178) -1];
 
 
 for j=length(dtau):-1:1
@@ -98,7 +99,7 @@ for j=length(dtau):-1:1
         z3=z-h*transpose(k3);
         k4=rhsa(z3,u(:,j),H,A,zak,k0,E0R); 
         z=z-h3*(transpose(k2)+transpose(k3))-h6*(transpose(k1)+transpose(k4));
-        psi(i-1,:)=z(5:8);
+        psi(i-1,:)=z(6:10);
     end
 end
 

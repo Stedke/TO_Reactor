@@ -17,10 +17,13 @@ for j=1:length(dtau)
     end
 end
 
-%wartosci z pupy:
+%wartosci z pupy -zmienic tez w rob.m
 T=0.4;
-%takie same jak w rob:
 ka=10^3;
+%wagi
+a1=1;   %czas
+a2=1;   %stan koncowy
+a3=1;   %calka ze sterowania
 
-Q=T+0.5*ka*(x(end,1)-2.13959274764266)^2+0.5*ka*(x(end,2)-1.09030127640364)^2+0.5*ka*(x(end,3)-387.35)^2+0.5*ka*(x(end,4)-386.0655084902178)^2;
+Q=a1*T+a3*x(end,5)+a2*(0.5*ka*(x(end,1)-2.13959274764266)^2+0.5*ka*(x(end,2)-1.09030127640364)^2+0.5*ka*(x(end,3)-387.35)^2+0.5*ka*(x(end,4)-386.0655084902178)^2);
 end
