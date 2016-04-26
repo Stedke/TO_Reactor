@@ -84,13 +84,18 @@ ka=10^3; %wspolczynnik dla kary - zmienic tez w cost.m
 psi=zeros(cn(end),5);
 psi(end,:)= [-ka*(x(end,1)-2.13959274764266) -ka*(x(end,2)-1.09030127640364) -ka*(x(end,3)-387.35) -ka*(x(end,4)-386.0655084902178) -1];
 
+dQ=zeros(cn(end),2);
+dQ(end,:)=[0 0];
+
+Gradient=zeros(length(dtau),2);
+Gradient(end,:)=[0 0];
 
 for j=length(dtau):-1:1
     h=dtau(j)/n(j);
     h2=h/2; h3=h/3; h6=h/6;
     
     for i=cn(j+1):-1:cn(j)+1
-        z=[x(i,:) psi(i,:)];
+        z=[x(i,:) psi(i,:) dQ(i,:)];    %z(i,1:5) - stan, z(i,6:10) - psi, z(i,11:12) - gradient
         k1=rhsa(z,u(:,j),H,A,zak,k0,E0R); 
         z1=z-h2*transpose(k1);
         k2=rhsa(z1,u(:,j),H,A,zak,k0,E0R); 
@@ -100,7 +105,14 @@ for j=length(dtau):-1:1
         k4=rhsa(z3,u(:,j),H,A,zak,k0,E0R); 
         z=z-h3*(transpose(k2)+transpose(k3))-h6*(transpose(k1)+transpose(k4));
         psi(i-1,:)=z(6:10);
+        dQ(i-1,:)=z(11:12);%w ostatnim kroku fora tu dac 0, a ta wartosc wpisac do gradientu       
+        
+        if i==cn(j)+1
+            Gradient(j,:)=z(11:12);
+            dQ(i-1,:)=[0 0];
+        end          
     end
+    
 end
 
 dQ0=test_psi(u, tau, x0, h0,H,A,zak,k0,E0R);
